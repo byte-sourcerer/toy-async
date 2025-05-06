@@ -1,7 +1,0 @@
-imports_granularity = "Module"
-group_imports = "StdExternalCrate"
-reorder_imports = true
-
-normalize_comments = true
-
-wrap_comments = true
