@@ -12,6 +12,7 @@ parking = "2.1.0"
 once_cell = "1.18.0"
 io-uring = "0.7.6"
 libc = "0.2.172"
+slab = "0.4.9"
 
 [dev-dependencies]
 async-std = "1.12.0"

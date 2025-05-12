@@ -6,6 +6,7 @@ use std::path::Path;
 
 use io_uring::opcode;
 use io_uring::types;
+use crate::uring_driver::{Op, UringDriver, URING_DRIVER};
 
 pub struct File {
     file: std::fs::File,
@@ -29,14 +30,20 @@ impl File {
     //     todo!()
     // }
     
-    pub async fn read_at(&self, mut buffer: Vec<u8>, pos: u64) -> (io::Result<u64>, Vec<u8>) {
+    pub async fn read_at(&self, mut buffer: Vec<u8>, pos: u64) -> Vec<u8> {
         let ptr = buffer.as_mut_ptr();
         let len = buffer.capacity();
-        let entry = opcode::Read::new(types::Fd(self.file.as_raw_fd()), ptr, len as _)
+        let id = URING_DRIVER.with_borrow_mut(|driver| driver.generate_id());
+        
+        let sqe = opcode::Read::new(types::Fd(self.file.as_raw_fd()), ptr, len as _)
             .offset(pos as _)
             .build()
-            .user_data(0x42);
+            .user_data(id);
         
-        todo!()
+        let op = Op::new(buffer, id);
+        
+        URING_DRIVER.with_borrow_mut(|driver| driver.push_sqe(&sqe));
+        
+        op.await
     }
 }
