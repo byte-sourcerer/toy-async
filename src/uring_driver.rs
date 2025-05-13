@@ -13,7 +13,7 @@ thread_local! {
     pub(crate) static URING_DRIVER: RefCell<UringDriver> = RefCell::new(UringDriver::new());
 }
 
-// pub(crate) static URING_DRIVER: Lazy<Arc<UringDriver>> = Lazy::new(|| Arc::new(UringDriver::new()));
+pub type BufResult = (io::Result<usize>, Vec<u8>);
 
 pub struct UringDriver {
     pub(crate) ring: IoUring,
@@ -99,7 +99,7 @@ impl Op {
 }
 
 impl Op {
-    fn cqe_to_result(&mut self, cqe: cqueue::Entry) -> (io::Result<usize>, Vec<u8>) {
+    fn cqe_to_result(&mut self, cqe: cqueue::Entry) -> BufResult {
         let res: CqeResult = cqe.into();
         let res = res.result.map(|n| n as usize);
         let mut buf = self.buf.take().unwrap();
@@ -119,7 +119,7 @@ impl Op {
 }
 
 impl Future for Op {
-    type Output = (io::Result<usize>, Vec<u8>);
+    type Output = BufResult;
 
     fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         URING_DRIVER.with_borrow_mut(|driver| {
