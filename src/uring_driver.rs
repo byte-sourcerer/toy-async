@@ -20,6 +20,12 @@ pub struct UringDriver {
     pub(crate) life_cycle: Slab<LifeCycle>,
 }
 
+impl Drop for UringDriver {
+    fn drop(&mut self) {
+        todo!()
+    }
+}
+
 impl UringDriver {
     fn new() -> Self {
         todo!()

@@ -42,6 +42,8 @@ mod tests {
 
     #[test]
     fn test_read_at() {
+        // todo: connect main runtime with uring driver?
+        // todo: lack of `start_uring_wakes_task`
         let file = tempfile().unwrap();
         let file = File::new(file);
         let buf = vec![0; 1024];
