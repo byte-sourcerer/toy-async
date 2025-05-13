@@ -4,9 +4,9 @@ use std::os::fd::AsRawFd;
 use std::os::unix::ffi::OsStrExt;
 use std::path::Path;
 
+use crate::uring_driver::{Op, UringDriver, URING_DRIVER};
 use io_uring::opcode;
 use io_uring::types;
-use crate::uring_driver::{Op, UringDriver, URING_DRIVER};
 
 pub struct File {
     file: std::fs::File,
@@ -29,21 +29,21 @@ impl File {
     //         .build();
     //     todo!()
     // }
-    
+
     pub async fn read_at(&self, mut buffer: Vec<u8>, pos: u64) -> Vec<u8> {
         let ptr = buffer.as_mut_ptr();
         let len = buffer.capacity();
         let id = URING_DRIVER.with_borrow_mut(|driver| driver.generate_id());
-        
+
         let sqe = opcode::Read::new(types::Fd(self.file.as_raw_fd()), ptr, len as _)
             .offset(pos as _)
             .build()
             .user_data(id);
-        
+
         let op = Op::new(buffer, id);
-        
+
         URING_DRIVER.with_borrow_mut(|driver| driver.push_sqe(&sqe));
-        
+
         op.await
     }
 }
